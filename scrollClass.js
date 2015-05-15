@@ -17,6 +17,11 @@
         // Cached objects 
         base.$win = $(window);
         base.$doc = $(document);
+
+        base.className = base.$el.data("scrollClass");
+        if (!base.className) {
+            base.className = 'in-viewport';
+        }
         
         var viewed = false,
             timer;
@@ -28,10 +33,6 @@
         
         // Scroll handler
         base.scrollHandler = function () {
-            // Return if element viewed        			
-            if (viewed) {
-                return;
-            }
             if (base.options.delay && base.options.delay !== 0) {
                 window.clearTimeout(timer);
                 timer = window.setTimeout(base.onScroll, base.options.delay);
@@ -43,26 +44,30 @@
         // On scroll
         base.onScroll = function () {
             if (base.inViewport()) {
-                var dataAttr = base.$el.data("scrollClass");
-                base.$el.addClass(dataAttr);
+                base.$el.addClass(base.className);
                 // Callback
                 if (typeof base.options.callback === 'function') {
                     base.options.callback.call(el);
                 }
                 viewed = true;
                 return;
+            } else {
+                if (viewed) {
+                    base.$el.removeClass(base.className);
+                    viewed = false;
+                }
             }
         };
         
         // If element visible in viewport
         base.inViewport = function () {
             var elRect = base.el.getBoundingClientRect(),
-            	winHeight = base.$win.height(),
+                winHeight = base.$win.height(),
                 elThreshold = base.options.threshold;
             // If window height smaller than element height use 50% threshold
             if (winHeight < elRect.height) {
-	            elThreshold = 50;
-            } 
+                elThreshold = 50;
+            }
             // Convert threshold percent to px of element
             var thresholdPx = (elThreshold / 100) * elRect.height;
             // Return true if element in viewport
@@ -74,7 +79,7 @@
         // Run initializer
         base.init();
         
-        // On scroll listener	    
+        // On scroll listener
         base.$win.on('scroll', base.scrollHandler);
     };
     
